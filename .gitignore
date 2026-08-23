@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.streamlit/secrets.toml
+
+# Ham kaynak veri dosyaları çok büyük (BindingDB 8.5GB, kiba/davis onlarca MB).
+# Sadece sıkıştırılmış temiz veri seti (22MB) repoya dahil edilir.
+data/*
+!data/combined_clean.csv.gz
