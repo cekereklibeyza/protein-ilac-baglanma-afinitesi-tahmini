@@ -58,13 +58,32 @@ table thead tr th {{
 
 features = ["MW", "LogP", "TPSA", "HBD", "HBA", "RotBonds"]
 
+# Bellek dostu veri tipleri: Streamlit Cloud'un ücretsiz katmanında bellek
+# sınırlı (1GB). float32/int16 kullanmak float64/int64'e göre belleği yarıya
+# indiriyor.
+_DTYPES = {
+    "protein": "category",
+    "pKi": "float32",
+    "MW": "float32",
+    "LogP": "float32",
+    "TPSA": "float32",
+    "HBD": "int16",
+    "HBA": "int16",
+    "RotBonds": "int16",
+}
+
 
 @st.cache_data
 def veri_yukle():
-    # GitHub'ın 100MB dosya sınırı nedeniyle veri sıkıştırılmış (.csv.gz) olarak
-    # tutuluyor. pandas sıkıştırmayı dosya uzantısından otomatik anlıyor,
-    # ekstra bir işlem gerekmiyor.
-    return pd.read_csv("data/combined_clean.csv.gz")
+    # Sadece uygulamada gerçekten kullanılan sütunlar okunuyor — SMILES ve
+    # source sütunları (uzun metin) belleği gereksiz yere şişirdiği ve
+    # önceki denemede uygulamanın çökmesine (bellek limiti) yol açtığı için
+    # dahil edilmiyor.
+    return pd.read_csv(
+        "data/combined_clean.csv.gz",
+        usecols=list(_DTYPES.keys()),
+        dtype=_DTYPES,
+    )
 
 
 @st.cache_resource
@@ -72,7 +91,7 @@ def model_egit(df):
     X = df[features]
     y = df["pKi"]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    rf = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    rf = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=2)
     rf.fit(X_train, y_train)
     return rf
 
@@ -181,7 +200,7 @@ with tab1:
     ))
     fig.update_layout(xaxis_title="pKi", yaxis_title="Molekül sayısı", height=380,
                        margin=dict(t=10, b=10), hovermode="closest")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("Protein Bazında pKi Dağılımı")
     st.caption("Farklı protein hedeflerinde pKi'nin medyan ve yayılımı belirgin şekilde değişiyor.")
@@ -197,7 +216,7 @@ with tab1:
         # hover kutusu, zoom, sürükleme veya imleç değişikliği olmayacak.
         st.plotly_chart(
             fig,
-            use_container_width=True,
+            width="stretch",
             config={
                 "staticPlot": True,
                 "displayModeBar": False,
@@ -224,7 +243,7 @@ with tab1:
     )
     fig.update_traces(marker=dict(size=6))
     fig.update_layout(height=420, margin=dict(t=10, b=10), hovermode="closest")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("Korelasyon Matrisi (Spearman)")
     st.caption(
@@ -239,7 +258,7 @@ with tab1:
         color_continuous_midpoint=0, aspect="auto",
     )
     fig.update_layout(height=450, margin=dict(t=10, b=10))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 # ============================================================
 # TAB 2: Hipotez Testleri
@@ -352,7 +371,7 @@ with tab3:
     ))
     fig.update_layout(yaxis=dict(autorange="reversed"), xaxis_title="Test R²",
                        height=320, margin=dict(t=10, b=10), hovermode="closest")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.markdown("#### Eğitim vs Test Performansı — Aşırı/Yetersiz Öğrenme")
     egitim_test_tablosu = pd.DataFrame({
@@ -388,7 +407,7 @@ with tab3:
     ))
     fig.update_layout(yaxis=dict(autorange="reversed"), xaxis_title="Önem Puanı",
                        height=320, margin=dict(t=10, b=10), hovermode="closest")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 # ============================================================
 # TAB 4: Canlı Tahmin Aracı
