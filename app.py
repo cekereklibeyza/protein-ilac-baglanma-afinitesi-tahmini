@@ -6,10 +6,8 @@
 #   streamlit run app.py
 # (Bu dosyayı indirdikten sonra proje klasöründe adını app.py yap.)
 #
-# ÖNEMLİ: Bu sürüm, Random Forest modelini bulutta eğitmek yerine
-# önceden eğitilmiş 'model/rf_model.pkl' dosyasını yükler (bkz.
-# train_model.py). Bu dosyayı önce train_model.py ile oluşturup
-# GitHub'a eklemen gerekiyor, yoksa uygulama hata verir.
+# Model bulutta eğitilmiyor — önceden eğitilmiş 'model/rf_model.pkl'
+# dosyası doğrudan yükleniyor (bkz. train_model.py).
 
 import streamlit as st
 import pandas as pd
@@ -31,13 +29,13 @@ PETROL = "#0A4D47"
 PETROL_DARK = "#063430"
 MINT = "#8FD9C4"
 LIGHT_BG = "#DCEEE9"
-PASTEL_MURDUM = "#EAD9E4"
-MURDUM_TEXT = "#4A2F44"
 # Vurgu (accent) rengi — raporun korelasyon ısı haritasında zaten kullanılan
 # turuncu tonu, göze çarpması istenen yerlerde (metrikler, butonlar, aktif
-# sekme çizgisi) kullanılıyor. Petrol/mint temayla uyumlu ama daha canlı.
+# sekme çizgisi, tablo başlıkları) kullanılıyor. Petrol/mint temayla uyumlu
+# ama daha canlı.
 ACCENT = "#D9822B"
 ACCENT_DARK = "#B96C1B"
+ACCENT_LIGHT = "#F7E3CB"
 PETROL_SCALE = [[0, MINT], [1, PETROL]]
 TURUNCU_PETROL_SCALE = [[0, "#D9822B"], [0.5, "#FFFFFF"], [1, "#0B6B57"]]
 
@@ -66,8 +64,8 @@ h1, h2, h3 {{
     color: {PETROL};
 }}
 table thead tr th {{
-    background-color: {PASTEL_MURDUM} !important;
-    color: {MURDUM_TEXT} !important;
+    background-color: {ACCENT_LIGHT} !important;
+    color: {ACCENT_DARK} !important;
     font-weight: 600 !important;
 }}
 
@@ -559,7 +557,10 @@ with tab3:
     )
 
     st.subheader("Random Forest — Özellik Önem Dereceleri")
-    st.caption("Modelin tahmin yaparken en çok güvendiği değişkenler: MW, TPSA ve LogP. Üzerine gelince tam puanı gör.")
+    st.caption(
+        "Modelin tahmin yaparken en çok güvendiği değişkenler: MW, TPSA ve LogP. "
+        "Üzerine gelince tam puanı gör."
+    )
 
     with st.spinner("Model yükleniyor..."):
         rf_model = model_yukle()
@@ -603,8 +604,8 @@ with tab4:
         st.warning("Zayıf bağlanma tahmini")
 
     st.caption(
-        "Not: Model açıklama gücü sınırlı (Test R²=0.52), çünkü protein kimliği "
-        "özellik olarak dahil edilmemiştir — bu tahmini yaklaşık bir gösterge olarak değerlendir."
+        "Not: Model açıklama gücü sınırlı, çünkü protein kimliği özellik olarak dahil "
+        "edilmemiştir — bu tahmini yaklaşık bir gösterge olarak değerlendir."
     )
 
 # ============================================================
