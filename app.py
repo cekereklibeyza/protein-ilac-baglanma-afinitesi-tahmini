@@ -42,8 +42,8 @@ TURUNCU_PETROL_SCALE = [[0, "#D9822B"], [0.5, "#FFFFFF"], [1, "#0B6B57"]]
 
 # CSS: metrik kutuları, başlıklar, expander, tablo başlığı, vurgu rengi
 # (metrik değerleri, aktif sekme çizgisi, butonlar, uyarı kutuları), koyu
-# petrol degradeli "profesyonel" kenar çubuğu ve sağ alt köşede belli
-# belirsiz nefes alan bir nokta animasyonu.
+# petrol degradeli "profesyonel" kenar çubuğu, Giriş sekmesindeki tanım
+# kutuları ve sağ alt köşede belli belirsiz nefes alan bir nokta animasyonu.
 st.markdown(f"""
 <style>
 [data-testid="stMetric"] {{
@@ -138,6 +138,23 @@ table thead tr th {{
 [data-testid="stSidebar"] [data-testid="stCaptionContainer"] {{
     color: {MINT} !important;
     opacity: 0.85;
+}}
+
+/* ---------- Giriş sekmesi: tanım kutuları ---------- */
+.tanim-kutusu {{
+    background-color: {LIGHT_BG};
+    border-left: 4px solid {ACCENT};
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+}}
+.tanim-kutusu b {{
+    color: {PETROL};
+    font-size: 1.02rem;
+}}
+.tanim-kutusu span {{
+    color: #333333;
+    font-size: 0.94rem;
 }}
 
 @keyframes nefes-al {{
@@ -381,7 +398,7 @@ st.title("🧬 Protein–İlaç Bağlanma Afinitesi Tahmini")
 st.caption("Kinaz ailesi proteinler için pKi tahmini — interaktif proje dashboard'u. Tüm grafiklerde fare ile üzerine gelerek değerleri görebilirsin.")
 st.markdown(
     f"<span style='color:{PETROL}; font-weight:600;'>Yol haritası:</span> "
-    f"<span style='color:#444;'>Veri &nbsp;→&nbsp; Keşifsel Analiz &nbsp;→&nbsp; "
+    f"<span style='color:#444;'>Giriş &nbsp;→&nbsp; Veri &nbsp;→&nbsp; Keşifsel Analiz &nbsp;→&nbsp; "
     f"Hipotez Testleri &nbsp;→&nbsp; Makine Öğrenmesi &nbsp;→&nbsp; Tahmin Aracı &nbsp;→&nbsp; Sonuç</span>",
     unsafe_allow_html=True,
 )
@@ -401,9 +418,86 @@ st.download_button(
 
 st.divider()
 
-tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["🔎 Veri Önizleme", "📊 Keşifsel Analiz", "🧪 Hipotez Testleri", "🤖 Makine Öğrenmesi", "🔮 Tahmin Aracı", "📌 Sonuç"]
+tabG, tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["🧬 Giriş", "🔎 Veri Önizleme", "📊 Keşifsel Analiz", "🧪 Hipotez Testleri",
+     "🤖 Makine Öğrenmesi", "🔮 Tahmin Aracı", "📌 Sonuç"]
 )
+
+# ============================================================
+# TAB GİRİŞ: Konuya görsel giriş
+# ============================================================
+with tabG:
+    st.markdown(
+        f"<h2 style='color:{PETROL}; margin-bottom:4px;'>Bir molekül, bir proteine "
+        f"ne kadar sıkı bağlanır?</h2>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "Bu proje, bir ilaç adayı molekülün kimyasal yapısına bakarak, o molekülün hedef bir "
+        "**proteine** ne kadar güçlü bağlanacağını **veri bilimi ve makine öğrenmesi** "
+        "yöntemleriyle tahmin etmeye çalışıyor."
+    )
+
+    col_gorsel, col_tanim = st.columns([1, 1.15])
+
+    with col_gorsel:
+        st.markdown(f"""
+        <div style="display:flex; justify-content:center; align-items:center; padding: 12px 0;">
+        <svg width="100%" height="260" viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40,50 Q10,130 55,205 Q140,252 250,215 Q330,185 310,100 Q288,25 200,15 Q95,3 40,50 Z"
+                fill="{PETROL}" opacity="0.94"/>
+          <ellipse cx="228" cy="122" rx="52" ry="40" fill="#FFFFFF"/>
+          <circle cx="228" cy="122" r="30" fill="{ACCENT}"/>
+          <circle cx="209" cy="104" r="9" fill="{ACCENT_DARK}"/>
+          <circle cx="247" cy="141" r="9" fill="{ACCENT_DARK}"/>
+          <text x="55" y="230" fill="#FFFFFF" font-size="17" font-weight="700" font-family="sans-serif">Protein</text>
+          <text x="150" y="188" fill="{ACCENT_DARK}" font-size="15" font-weight="700" font-family="sans-serif">İlaç Molekülü</text>
+        </svg>
+        </div>
+        <p style="text-align:center; color:#555; font-size:0.85rem; margin-top:-8px;">
+        Molekül, proteinin yüzeyindeki "cebe" ne kadar iyi oturursa, bağlanma o kadar güçlü olur.
+        </p>
+        """, unsafe_allow_html=True)
+
+    with col_tanim:
+        st.markdown(f"""
+        <div class="tanim-kutusu">
+            <b>🧫 Protein</b><br>
+            <span>Vücudumuzdaki pek çok süreci yöneten büyük moleküller. Yüzeylerinde küçük
+            moleküllerin yerleşebileceği "cepler" (binding pocket) bulunur.</span>
+        </div>
+        <div class="tanim-kutusu">
+            <b>💊 İlaç Molekülü (Ligand)</b><br>
+            <span>Bu cebe yerleşip proteinin işlevini değiştirebilen küçük bir kimyasal yapı.</span>
+        </div>
+        <div class="tanim-kutusu">
+            <b>🔗 Bağlanma Afinitesi</b><br>
+            <span>Molekülün proteine ne kadar "sıkı" tutunduğunun ölçüsü. Ne kadar sıkı
+            tutunursa, ilaç genellikle o kadar etkili olabilir.</span>
+        </div>
+        <div class="tanim-kutusu">
+            <b>📊 pKi</b><br>
+            <span>Bağlanma afinitesini sayısal olarak ifade eden ölçek. Logaritmik bir ölçek
+            olduğu için değer arttıkça bağlanma katlanarak güçleniyor.</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("#### Bağlanma Gücü Ölçeği (pKi)")
+    st.markdown(f"""
+    <div style="height:22px; border-radius:11px; background: linear-gradient(90deg, {MINT}, {PETROL});
+                margin-top:6px;"></div>
+    <div style="display:flex; justify-content:space-between; margin-top:6px; color:#444; font-size:0.85rem;">
+        <span>pKi ≈ 4<br><b>Zayıf bağlanma</b></span>
+        <span style="text-align:center;">pKi ≈ 7<br><b>Orta düzey</b></span>
+        <span style="text-align:right;">pKi ≈ 10<br><b>Güçlü bağlanma</b></span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.info(
+        "Bu dashboard'daki tüm analiz, istatistik ve tahminler işte bu pKi değerini merkeze alıyor. "
+        "Sıradaki sekmelerde önce veriye, sonra bulgulara ve son olarak canlı tahmin aracına bakacağız.",
+        icon="🎯",
+    )
 
 # ============================================================
 # TAB 0: Veri Önizleme
