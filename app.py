@@ -443,14 +443,14 @@ with tabG:
     with col_gorsel:
         st.markdown(f"""
         <div style="display:flex; justify-content:center; align-items:center; padding: 12px 0;">
-        <svg width="100%" height="260" viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+        <svg width="100%" height="260" viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
           <path d="M40,50 Q10,130 55,205 Q140,252 250,215 Q330,185 310,100 Q288,25 200,15 Q95,3 40,50 Z"
                 fill="{PETROL}" opacity="0.94"/>
           <ellipse cx="228" cy="122" rx="52" ry="40" fill="#FFFFFF"/>
           <circle cx="228" cy="122" r="30" fill="{ACCENT}"/>
           <circle cx="209" cy="104" r="9" fill="{ACCENT_DARK}"/>
           <circle cx="247" cy="141" r="9" fill="{ACCENT_DARK}"/>
-          <text x="55" y="230" fill="#FFFFFF" font-size="17" font-weight="700" font-family="sans-serif">Protein</text>
+          <text x="80" y="60" fill="#FFFFFF" font-size="20" font-weight="700" font-family="sans-serif">Protein</text>
           <text x="150" y="188" fill="{ACCENT_DARK}" font-size="15" font-weight="700" font-family="sans-serif">İlaç Molekülü</text>
         </svg>
         </div>
