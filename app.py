@@ -47,8 +47,9 @@ TURUNCU_PETROL_SCALE = [[0, "#D9822B"], [0.5, "#FFFFFF"], [1, "#0B6B57"]]
 
 # CSS: metrik kutuları, başlıklar, expander, tablo başlığı, vurgu rengi
 # (metrik değerleri, aktif sekme çizgisi, butonlar, uyarı kutuları), koyu
-# petrol degradeli "profesyonel" kenar çubuğu, Giriş sekmesindeki tanım
-# kutuları ve sağ alt köşede belli belirsiz nefes alan bir nokta animasyonu.
+# petrol degradeli "profesyonel" kenar çubuğu, Giriş sekmesindeki tanım ve
+# özet kutuları ve sağ alt köşede belli belirsiz nefes alan bir nokta
+# animasyonu.
 st.markdown(f"""
 <style>
 [data-testid="stMetric"] {{
@@ -160,6 +161,35 @@ table thead tr th {{
 .tanim-kutusu span {{
     color: #333333;
     font-size: 0.94rem;
+}}
+
+/* ---------- Giriş sekmesi: uzun, estetik "Proje Özeti" kutusu ---------- */
+.ozet-kutusu {{
+    background: linear-gradient(135deg, {LIGHT_BG} 0%, #FFFFFF 100%);
+    border: 1px solid {PETROL}33;
+    border-left: 5px solid {PETROL};
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin: 18px 0 8px 0;
+    box-shadow: 0 2px 10px rgba(10, 77, 71, 0.08);
+}}
+.ozet-kutusu h4 {{
+    color: {PETROL};
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.15rem;
+}}
+.ozet-kutusu p {{
+    color: #2E2E2E;
+    font-size: 0.98rem;
+    line-height: 1.75;
+    margin-bottom: 12px;
+}}
+.ozet-kutusu p:last-child {{
+    margin-bottom: 0;
+}}
+.ozet-kutusu b {{
+    color: {ACCENT_DARK};
 }}
 
 @keyframes nefes-al {{
@@ -511,6 +541,34 @@ with tabG:
         "Sıradaki sekmelerde önce veriye, sonra bulgulara ve son olarak canlı tahmin aracına bakacağız.",
         icon="🎯",
     )
+
+    # ---------- Estetik, tam metin "Proje Özeti" kutusu ----------
+    st.markdown(f"""
+    <div class="ozet-kutusu">
+        <h4>📝 Proje Özeti</h4>
+        <p>
+        Bu proje, bir ilaç adayı molekülün kimyasal yapısına bakarak bir proteine ne kadar
+        güçlü bağlanacağını (<b>pKi</b>) tahmin etmeye çalışıyor — ortalama <b>12-20 yıl</b>
+        süren, <b>1.8 milyar doları</b> aşan ve başarı oranı <b>yüzde 1'in altında</b> olan
+        ilaç geliştirme sürecine, veri bilimiyle küçük bir katkı. Molekülün ağırlığı
+        (<b>MW</b>), yağda çözünürlüğü (<b>LogP</b>), yüzey polaritesi (<b>TPSA</b>),
+        hidrojen bağı kurma kapasitesi (<b>HBD</b>, <b>HBA</b>) ve esnekliği
+        (<b>RotBonds</b>) gibi 6 basit kimyasal özellikten yola çıkıyorum.
+        </p>
+        <p>
+        Projenin veri bilimi omurgası dört adımda ilerliyor. Önce üç halka açık
+        veritabanından (BindingDB, Davis, KIBA) topladığım veriyi temizleyip ortak bir pKi
+        ölçeğine getirdim. Sonra pKi'nin normal dağılmadığını (<b>Shapiro-Wilk, p≈0</b>)
+        doğruladım — bu, veri toplama sürecinden kaynaklanan yapay yığılmalardan (pKi=5.0 ve
+        7.0 civarı) kaynaklanıyor — ve bu yüzden normal dağılım varsaymayan
+        <b>Spearman</b> ve <b>Kruskal-Wallis</b> testlerini kullandım. Ardından altı farklı
+        makine öğrenmesi modelini adil, aynı koşullarda karşılaştırdım; en iyisi
+        <b>Random Forest</b> oldu (Test R²=0.517). Son olarak da bu sonucun bir tavan
+        olduğunu, çünkü protein kimliğinin modele hiç dahil edilmediğini yorumladım — kendi
+        hipotez testim zaten proteinin ne kadar belirleyici olduğunu gösterdi.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # TAB 0: Veri Önizleme
