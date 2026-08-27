@@ -8,6 +8,10 @@
 #
 # Model bulutta eğitilmiyor — önceden eğitilmiş 'model/rf_model.pkl'
 # dosyası doğrudan yükleniyor (bkz. train_model.py).
+#
+# LOGO: sağ üst köşedeki softITo logosu için, proje klasöründe bir
+# 'assets' klasörü oluşturup içine 'softito_logo.png' dosyasını koyman
+# gerekiyor (bkz. sohbetteki talimatlar).
 
 import streamlit as st
 import pandas as pd
@@ -16,6 +20,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import joblib
+import os
 
 # ------------------------------------------------------------
 # Sayfa ayarları ve renk temamız (notebook/rapordakiyle aynı)
@@ -392,6 +397,14 @@ with st.sidebar:
     st.caption("Beyza Fatıma Çekerekli · 2026")
 
 # ------------------------------------------------------------
+# Sağ üst köşe logosu (softITo)
+# ------------------------------------------------------------
+logo_spacer, logo_col = st.columns([6, 1])
+with logo_col:
+    if os.path.exists("assets/softito_logo.png"):
+        st.image("assets/softito_logo.png", width="stretch")
+
+# ------------------------------------------------------------
 # Üst başlık ve özet metrikler
 # ------------------------------------------------------------
 st.title("🧬 Protein–İlaç Bağlanma Afinitesi Tahmini")
@@ -567,6 +580,12 @@ with tab1:
     )
     st.plotly_chart(yap_histogram(df), width="stretch")
     st.caption(
+        "Bu yığılmaların iki teknik nedeni var: Davis veri setinde zayıf/tam ölçülemeyen "
+        "bağlanmalara varsayılan olarak pKd=5.0 atanmış olması, ve laboratuvarlarda yuvarlak "
+        "raporlanan IC50/Ki değerlerinin (10.000 nM, 100 nM gibi) pKi'ye çevrilince tam "
+        "sayılara denk gelmesi. Yani biyolojik değil, veri toplama sürecinden kaynaklanan bir örüntü."
+    )
+    st.caption(
         "Pratikte bu, veri setinin çoğunlukla 'orta-zayıf' ve 'orta-güçlü' bağlanan moleküllerden "
         "oluştuğu, çok güçlü bağlananların (pKi>9) nispeten az olduğu anlamına geliyor — bu da "
         "modelin yüksek pKi bölgesinde daha az örnekle öğrendiği, dolayısıyla o bölgede daha az "
@@ -625,6 +644,12 @@ with tab2:
     st.markdown(
         "pKi normal dağılmadığı için (Shapiro-Wilk, p≈0) parametrik olmayan testler "
         "(Spearman korelasyonu, Kruskal-Wallis) kullanılmıştır."
+    )
+    st.caption(
+        "Bu anormalliğin büyük ölçüde nedeni, pKi dağılımındaki yapay yığılmalar (bkz. "
+        "Keşifsel Analiz sekmesi, pKi=5.0/7.0 civarı). Dağılım düzgün bir çan eğrisi olmadığı "
+        "için, normal dağılım varsayan Pearson korelasyonu ve ANOVA yerine, dağılım şekli "
+        "varsaymayan Spearman ve Kruskal-Wallis tercih edilmiştir."
     )
 
     with st.expander("📋 Hipotezler", expanded=True):
