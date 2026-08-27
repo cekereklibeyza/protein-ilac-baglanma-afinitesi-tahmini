@@ -778,13 +778,30 @@ with tab4:
 
     rf_model = model_yukle()
 
+    # "Gerçek bir örnekle dene" — bilinen bir kinaz inhibitörü ilacın gerçek
+    # değerleriyle sliderları otomatik doldurur. Kinaz ailesi proteinler bu
+    # veri setinin tam odağı olduğu için Imatinib (Gleevec) örnek olarak
+    # seçildi. Değerler PubChem CID 5291 kaynaklıdır.
+    if st.button("💊 Gerçek bir örnekle dene: Imatinib (Gleevec)"):
+        st.session_state["mw_val"] = 493.6
+        st.session_state["logp_val"] = 3.0
+        st.session_state["tpsa_val"] = 86.3
+        st.session_state["hbd_val"] = 2
+        st.session_state["hba_val"] = 6
+        st.session_state["rotbonds_val"] = 7
+    st.caption(
+        "Imatinib (Gleevec), kronik miyeloid lösemi tedavisinde kullanılan, dünyaca bilinen "
+        "bir kinaz inhibitörü ilacıdır — tam bu veri setinin odaklandığı protein ailesinden. "
+        "Değerler PubChem'den (CID 5291) alınmıştır."
+    )
+
     c1, c2, c3 = st.columns(3)
-    mw = c1.slider("MW (Moleküler Ağırlık)", 100.0, 1000.0, 450.0)
-    logp = c1.slider("LogP", -5.0, 10.0, 3.0)
-    tpsa = c2.slider("TPSA", 0.0, 300.0, 90.0)
-    hbd = c2.slider("HBD", 0, 10, 2)
-    hba = c3.slider("HBA", 0, 15, 5)
-    rotbonds = c3.slider("RotBonds", 0, 20, 5)
+    mw = c1.slider("MW (Moleküler Ağırlık)", 100.0, 1000.0, 450.0, key="mw_val")
+    logp = c1.slider("LogP", -5.0, 10.0, 3.0, key="logp_val")
+    tpsa = c2.slider("TPSA", 0.0, 300.0, 90.0, key="tpsa_val")
+    hbd = c2.slider("HBD", 0, 10, 2, key="hbd_val")
+    hba = c3.slider("HBA", 0, 15, 5, key="hba_val")
+    rotbonds = c3.slider("RotBonds", 0, 20, 5, key="rotbonds_val")
 
     girdi = pd.DataFrame([[mw, logp, tpsa, hbd, hba, rotbonds]], columns=features)
     tahmin = rf_model.predict(girdi)[0]
