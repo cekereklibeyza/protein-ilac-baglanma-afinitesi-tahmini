@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import joblib
 
 # ------------------------------------------------------------
@@ -280,6 +281,45 @@ def yap_feature_importance(_onem_ozellik: tuple, _onem_deger: tuple):
     return fig
 
 
+@st.cache_data
+def yap_protein_ortalama(_df):
+    # En sık geçen 15 proteinin ortalama pKi'sine göre sıralanmış çubuk grafiği.
+    top15 = _df["protein"].value_counts().head(15).index
+    ozet = _df[_df["protein"].isin(top15)].groupby("protein", observed=True)["pKi"].mean().sort_values(ascending=False)
+    fig = go.Figure(go.Bar(
+        y=ozet.index.astype(str), x=ozet.values, orientation="h",
+        marker=dict(color=ozet.values, colorscale=PETROL_SCALE),
+        hovertemplate="%{y}<br>Ortalama pKi: %{x:.2f}<extra></extra>",
+    ))
+    fig.update_layout(yaxis=dict(autorange="reversed"), xaxis_title="Ortalama pKi",
+                       height=440, margin=dict(t=10, b=10), hovermode="closest")
+    return fig
+
+
+@st.cache_data
+def yap_tanimlayici_histogramlari(_df):
+    # 6 moleküler tanımlayıcının dağılımlarını tek bir 2x3 grid'de gösterir.
+    fig = make_subplots(rows=2, cols=3, subplot_titles=features)
+    positions = [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)]
+    for feat, (r, c) in zip(features, positions):
+        counts, edges = np.histogram(_df[feat], bins=30)
+        centers = (edges[:-1] + edges[1:]) / 2
+        fig.add_trace(
+            go.Bar(x=centers, y=counts, marker_color=PETROL, showlegend=False,
+                   hovertemplate=f"{feat} ≈ " + "%{x:.1f}<br>Sayı: %{y:,}<extra></extra>"),
+            row=r, col=c,
+        )
+    fig.update_layout(height=520, margin=dict(t=40, b=10), showlegend=False)
+    return fig
+
+
+@st.cache_data
+def yap_ozet_istatistik(_df):
+    ozet = _df[features + ["pKi"]].describe().T[["mean", "std", "min", "50%", "max"]]
+    ozet.columns = ["Ortalama", "Std. Sapma", "Min", "Medyan", "Maks"]
+    return ozet.round(2)
+
+
 with st.spinner("Veri yükleniyor..."):
     df = veri_yukle()
 
@@ -361,9 +401,60 @@ st.download_button(
 
 st.divider()
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["📊 Keşifsel Analiz", "🧪 Hipotez Testleri", "🤖 Makine Öğrenmesi", "🔮 Tahmin Aracı", "📌 Sonuç"]
+tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["🔎 Veri Önizleme", "📊 Keşifsel Analiz", "🧪 Hipotez Testleri", "🤖 Makine Öğrenmesi", "🔮 Tahmin Aracı", "📌 Sonuç"]
 )
+
+# ============================================================
+# TAB 0: Veri Önizleme
+# ============================================================
+with tab0:
+    st.subheader("🔎 Ham Veriye Göz At")
+    st.markdown(
+        "Analize geçmeden önce veri setinin kendisine bir göz atalım. Aşağıdaki filtrelerle "
+        "istediğin proteine veya pKi aralığına odaklanıp ham satırları inceleyebilirsin."
+    )
+
+    col_p, col_r, col_n = st.columns([2, 2, 1])
+    onizleme_proteinler = col_p.multiselect(
+        "Protein filtrele (boş bırakırsan tümü)",
+        options=sorted(df["protein"].astype(str).unique().tolist()),
+    )
+    pki_min, pki_max = float(df["pKi"].min()), float(df["pKi"].max())
+    onizleme_araligi = col_r.slider("pKi aralığı", pki_min, pki_max, (pki_min, pki_max))
+    satir_sayisi = col_n.selectbox("Satır sayısı", [50, 100, 500, 1000], index=1)
+
+    onizleme_df = df
+    if onizleme_proteinler:
+        onizleme_df = onizleme_df[onizleme_df["protein"].astype(str).isin(onizleme_proteinler)]
+    onizleme_df = onizleme_df[
+        (onizleme_df["pKi"] >= onizleme_araligi[0]) & (onizleme_df["pKi"] <= onizleme_araligi[1])
+    ]
+
+    st.dataframe(onizleme_df.head(satir_sayisi), width="stretch", height=380)
+    st.caption(
+        f"Filtreye uyan toplam **{len(onizleme_df):,}** satırdan ilk "
+        f"**{min(satir_sayisi, len(onizleme_df)):,}** tanesi gösteriliyor. "
+        "Sütun başlıklarına tıklayarak sıralayabilirsin."
+    )
+
+    st.subheader("Sayısal Özellikler — Özet İstatistikler")
+    st.caption("Her tanımlayıcının ortalama, standart sapma, min/maks ve medyan değerleri.")
+    st.table(yap_ozet_istatistik(df))
+
+    st.subheader("Moleküler Tanımlayıcı Dağılımları")
+    st.caption(
+        "6 tanımlayıcının kendi içindeki dağılımı — hangi değer aralıklarının veri setinde "
+        "daha yoğun olduğunu gösterir."
+    )
+    st.plotly_chart(yap_tanimlayici_histogramlari(df), width="stretch")
+
+    st.subheader("Protein Bazlı Ortalama pKi (En Sık 15 Protein)")
+    st.caption(
+        "En çok kayda sahip 15 proteinin ortalama bağlanma afinitesi. Bu sıralama, H5 "
+        "hipotezindeki 'protein kimliği pKi'yi güçlü şekilde etkiler' bulgusunu somutlaştırıyor."
+    )
+    st.plotly_chart(yap_protein_ortalama(df), width="stretch")
 
 # ============================================================
 # TAB 1: Keşifsel Veri Analizi
@@ -381,6 +472,12 @@ with tab1:
         "tam molekül sayısını gör."
     )
     st.plotly_chart(yap_histogram(df), width="stretch")
+    st.caption(
+        "Pratikte bu, veri setinin çoğunlukla 'orta-zayıf' ve 'orta-güçlü' bağlanan moleküllerden "
+        "oluştuğu, çok güçlü bağlananların (pKi>9) nispeten az olduğu anlamına geliyor — bu da "
+        "modelin yüksek pKi bölgesinde daha az örnekle öğrendiği, dolayısıyla o bölgede daha az "
+        "güvenilir olabileceği anlamına gelir."
+    )
 
     st.subheader("Protein Bazında pKi Dağılımı")
     st.caption("Farklı protein hedeflerinde pKi'nin medyan ve yayılımı belirgin şekilde değişiyor.")
@@ -535,6 +632,11 @@ with tab3:
     }).sort_values("Test R²", ascending=False)
     st.table(sonuc_tablosu.set_index("Model"))
     st.caption("En iyi model **Random Forest** (Test R²=0.517), ama varyansın hâlâ yalnızca yarısını açıklıyor.")
+    st.caption(
+        "R² pratikte ne demek? R²=1.0 modelin her şeyi kusursuz açıkladığı, R²=0 ise modelin "
+        "ortalamayı tahmin etmekten farksız olduğu anlamına gelir. 0.517'lik bir değer, modelin "
+        "rastgele tahminden çok daha iyi ama hâlâ mükemmelden uzak olduğunu gösterir."
+    )
 
     st.plotly_chart(yap_r2_bar(sonuc_tablosu), width="stretch")
 
